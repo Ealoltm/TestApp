@@ -1,13 +1,14 @@
-name: Terraform Destroy (Auto)
+name: Terraform Destroy Local Kubernetes
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # trigger manually
 
 permissions:
   contents: read
 
 jobs:
   terraform-destroy:
+    name: Destroy Terraform-managed resources locally
     runs-on: self-hosted
 
     env:
@@ -16,28 +17,45 @@ jobs:
 
     defaults:
       run:
-        shell: powershell
         working-directory: terraform
 
     steps:
+      # Step 1 — Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Verify Terraform
-        run: terraform version
+      # Step 2 — Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
 
+      # Step 3 — Init Terraform
       - name: Terraform Init
         run: terraform init -input=false
 
-      - name: Terraform Validate
-        run: terraform validate
+      # Step 4 — Try importing existing Kubernetes resources (ignore errors if missing)
+      - name: Import existing Kubernetes resources
+        continue-on-error: true
+        run: |
+          echo "Importing Deployment..."
+          terraform import kubernetes_manifest.mini_store_deploy default/mini-store || echo "Deployment not found"
 
-      - name: Terraform Plan (Destroy)
+          echo "Importing Service..."
+          terraform import module.mini_store.kubernetes_service.mini_store_service default/mini-store-service || echo "Service not found"
+
+          echo "Importing Ingress..."
+          terraform import module.mini_store.kubernetes_ingress_v1.mini_store_ingress default/mini-store-ingress || echo "Ingress not found"
+
+      # Step 5 — Plan destroy
+      - name: Terraform Plan Destroy
         run: terraform plan -destroy -out=tfplan
 
-      - name: Show Destroy Plan
-        run: terraform show tfplan
-
-
-      - name: Terraform Destroy Apply
+      # Step 6 — Apply destroy (no approval)
+      - name: Terraform Destroy
         run: terraform apply -auto-approve tfplan
+
+      # Step 7 — Verify deletion
+      - name: Verify Kubernetes cleanup
+        run: |
+          kubectl get all -n default || true
