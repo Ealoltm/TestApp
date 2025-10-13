@@ -1,4 +1,4 @@
-name: Terraform Destroy Local Kubernetes
+name: Terraform Destroy (Auto)
 
 on:
   workflow_dispatch:
@@ -8,72 +8,40 @@ permissions:
 
 jobs:
   terraform-destroy:
-    name: Destroy Terraform-managed resources locally
     runs-on: self-hosted
 
     env:
       KUBECONFIG: C:\Users\ealol\.kube\config
       TF_IN_AUTOMATION: true
 
-
     steps:
-      # Step 1 — Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2 — Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.5
+      - name: Verify Terraform
+        run: terraform version
 
-      # Step 3 — Init Terraform
       - name: Terraform Init
-        run:  |
-          cd terraform
-          terraform init
-
-      # Step 4 — Import existing resources safely
-      - name: Import existing Kubernetes resources
-        run: |
-          Write-Host "Attempting to import Kubernetes resources..."
-
-          try {
-            terraform import kubernetes_manifest.mini_store_deploy default/mini-store
-          } catch {
-            Write-Host "Deployment not found, skipping."
-          }
-
-          try {
-            terraform import module.mini_store.kubernetes_service.mini_store_service default/mini-store-service
-          } catch {
-            Write-Host "Service not found, skipping."
-          }
-
-          try {
-            terraform import module.mini_store.kubernetes_ingress_v1.mini_store_ingress default/mini-store-ingress
-          } catch {
-            Write-Host "Ingress not found, skipping."
-          }
-
-      # Step 5 — Plan destroy
-      - name: Terraform Plan Destroy
         run: |
           cd terraform
-          terraform plan -destroy
+          terraform init -input=false
 
-      # Step 6 — Apply destroy (auto approve)
-      - name: Terraform Destroy
+      - name: Terraform Validate
         run: |
           cd terraform
-          terraform apply -auto-approve tfplan
+          terraform validate
 
-      # Step 7 — Verify cleanup
-      - name: Verify Kubernetes cleanup
+      - name: Terraform Plan (Destroy)
         run: |
-          Write-Host "Checking remaining resources..."
-          try {
-            kubectl get all -n default
-          } catch {
-            Write-Host "No resources found or kubectl failed."
-          }
+          cd terraform
+          terraform plan -destroy -out=tfplan
+
+      - name: Show Destroy Plan
+        run: |
+          cd terraform
+          terraform show tfplan
+
+      - name: Terraform Destroy Apply
+        run: |
+          cd terraform
+          terraform apply -auto-approve ./tfplan
