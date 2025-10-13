@@ -12,12 +12,14 @@ resource "kubernetes_service" "mini_store_service" {
       app = var.app_label
     }
 
+    type = "NodePort"
+
     port {
+      name        = "http"
       port        = 80
       target_port = 8000
+      node_port   = 32000
       protocol    = "TCP"
     }
-
-    type = "ClusterIP"
   }
 }
