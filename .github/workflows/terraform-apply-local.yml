@@ -49,7 +49,7 @@ jobs:
       - name: Terraform plan
         run: |
           cd terraform
-          terrafom plan
+          terraform plan
 
       - name: Terraform Apply
         run: |
