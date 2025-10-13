@@ -66,7 +66,7 @@ jobs:
       - name: Terraform Destroy
         run: |
           cd terraform
-          terraform initterraform apply -auto-approve tfplan
+          terraform apply -auto-approve tfplan
 
       # Step 7 — Verify cleanup
       - name: Verify Kubernetes cleanup
