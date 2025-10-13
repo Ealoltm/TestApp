@@ -30,15 +30,6 @@ jobs:
           pwd
           echo "List of files:"
           ls -R
-
-      # ------------------------------
-      # Step 3: Setup Terraform
-      # ------------------------------
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.5
-
       # ------------------------------
       # Step 4: Terraform Init + Apply
       # ------------------------------
