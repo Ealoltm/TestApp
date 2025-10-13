@@ -18,7 +18,6 @@ jobs:
     defaults:
       run:
         working-directory: terraform
-        shell: bash
 
     steps:
       # Step 1 — Checkout repo
