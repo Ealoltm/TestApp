@@ -1,0 +1,47 @@
+name: Terraform Destroy (Manual Approval)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  terraform-destroy:
+    runs-on: self-hosted
+
+
+    environment:
+      name: terraform-destroy
+      url: https://github.com/${{ github.repository }}/actions
+
+    env:
+      KUBECONFIG: C:\Users\ealol\.kube\config
+      TF_IN_AUTOMATION: true
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Terraform
+        run: terraform version
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan (Destroy)
+        run: terraform plan -destroy -out=tfplan
+
+      - name: Show Destroy Plan
+        run: terraform show tfplan
+
+ 
+      - name: Terraform Destroy Apply
+        run: terraform apply -auto-approve tfplan
