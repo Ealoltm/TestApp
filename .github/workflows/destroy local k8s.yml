@@ -1,7 +1,7 @@
 name: Terraform Destroy Local Kubernetes
 
 on:
-  workflow_dispatch:   # trigger manually
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -30,22 +30,32 @@ jobs:
         with:
           terraform_version: 1.9.5
 
-      # Step 3 — Init Terraform
+      # Step 3 — Initialize Terraform
       - name: Terraform Init
         run: terraform init -input=false
 
-      # Step 4 — Try importing existing Kubernetes resources (ignore errors if missing)
+      # Step 4 — Import existing resources (PowerShell-friendly)
       - name: Import existing Kubernetes resources
-        continue-on-error: true
+        shell: pwsh
         run: |
-          echo "Importing Deployment..."
-          terraform import kubernetes_manifest.mini_store_deploy default/mini-store || echo "Deployment not found"
+          Write-Host "Attempting to import Kubernetes resources..."
+          try {
+            terraform import kubernetes_manifest.mini_store_deploy default/mini-store
+          } catch {
+            Write-Host "Deployment not found, skipping."
+          }
 
-          echo "Importing Service..."
-          terraform import module.mini_store.kubernetes_service.mini_store_service default/mini-store-service || echo "Service not found"
+          try {
+            terraform import module.mini_store.kubernetes_service.mini_store_service default/mini-store-service
+          } catch {
+            Write-Host "Service not found, skipping."
+          }
 
-          echo "Importing Ingress..."
-          terraform import module.mini_store.kubernetes_ingress_v1.mini_store_ingress default/mini-store-ingress || echo "Ingress not found"
+          try {
+            terraform import module.mini_store.kubernetes_ingress_v1.mini_store_ingress default/mini-store-ingress
+          } catch {
+            Write-Host "Ingress not found, skipping."
+          }
 
       # Step 5 — Plan destroy
       - name: Terraform Plan Destroy
@@ -55,7 +65,12 @@ jobs:
       - name: Terraform Destroy
         run: terraform apply -auto-approve tfplan
 
-      # Step 7 — Verify deletion
+      # Step 7 — Verify deletion (PowerShell-safe)
       - name: Verify Kubernetes cleanup
+        shell: pwsh
         run: |
-          kubectl get all -n default || true
+          try {
+            kubectl get all -n default
+          } catch {
+            Write-Host "kubectl failed — cluster may already be empty."
+          }
