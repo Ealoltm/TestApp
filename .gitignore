@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+# Terraform state and cache
+>>>>>>> 118caed1156f0fdd6ed7022d493a008d9c033eda
 .terraform/
 .terraform.lock.hcl
 terraform.tfvars
