@@ -1,6 +1,7 @@
 resource "kubernetes_ingress_v1" "mini_store_ingress" {
   metadata {
-    name = "mini-store-ingress"
+    name      = "mini-store-ingress"
+    namespace = "default"
     annotations = {
       "nginx.ingress.kubernetes.io/rewrite-target" = "/"
     }
@@ -11,15 +12,14 @@ resource "kubernetes_ingress_v1" "mini_store_ingress" {
 
     rule {
       host = var.host_name
-
       http {
         path {
-          path      = "/"
+          path     = "/"
           path_type = "Prefix"
 
           backend {
             service {
-              name = kubernetes_service.mini_store.metadata[0].name
+              name = "mini-store-service"
               port {
                 number = 80
               }

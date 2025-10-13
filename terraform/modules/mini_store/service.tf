@@ -1,6 +1,7 @@
-resource "kubernetes_service" "mini_store" {
+resource "kubernetes_service" "mini_store_service" {
   metadata {
-    name = "mini-store-service"
+    name      = "mini-store-service"
+    namespace = "default"
     labels = {
       app = var.app_label
     }
@@ -14,6 +15,7 @@ resource "kubernetes_service" "mini_store" {
     port {
       port        = 80
       target_port = 8000
+      protocol    = "TCP"
     }
 
     type = "ClusterIP"
