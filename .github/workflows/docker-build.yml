@@ -32,3 +32,18 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/testapp:${{ github.event.inputs.version }}
             ghcr.io/${{ github.repository_owner }}/testapp:latest
+        env:
+          # lowercase the owner (username)
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        # use shell command to lowercase before passing to docker
+      - name: Fix tag case and push manually
+        if: ${{ always() }}
+        run: |
+          owner_lower=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          repo_lower=$(basename "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "Building ghcr.io/${owner_lower}/${repo_lower}:${{ github.event.inputs.version }}"
+          docker build -t ghcr.io/${owner_lower}/${repo_lower}:${{ github.event.inputs.version }} .
+          docker tag ghcr.io/${owner_lower}/${repo_lower}:${{ github.event.inputs.version }} ghcr.io/${owner_lower}/${repo_lower}:latest
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push ghcr.io/${owner_lower}/${repo_lower}:${{ github.event.inputs.version }}
+          docker push ghcr.io/${owner_lower}/${repo_lower}:latest
