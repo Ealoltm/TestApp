@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
       - name: mini-store
-        image: ghcr.io/ealol/testapp:v1.0.0
+        image: ghcr.io/ealoltm/testapp:latest
         ports:
         - containerPort: 8000

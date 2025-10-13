@@ -14,7 +14,7 @@ resource "kubernetes_ingress_v1" "mini_store_ingress" {
       host = var.host_name
       http {
         path {
-          path     = "/"
+          path      = "/"
           path_type = "Prefix"
 
           backend {
