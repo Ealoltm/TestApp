@@ -14,6 +14,11 @@ jobs:
       KUBECONFIG: C:\Users\ealol\.kube\config
       TF_IN_AUTOMATION: true
 
+    defaults:
+      run:
+        shell: powershell
+        working-directory: terraform
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
