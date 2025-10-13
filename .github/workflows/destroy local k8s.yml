@@ -18,27 +18,28 @@ jobs:
     defaults:
       run:
         working-directory: terraform
+        shell: powershell
 
     steps:
       # Step 1 — Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2 — Install Terraform
+      # Step 2 — Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.5
 
-      # Step 3 — Initialize Terraform
+      # Step 3 — Init Terraform
       - name: Terraform Init
         run: terraform init -input=false
 
-      # Step 4 — Import existing resources (PowerShell-friendly)
+      # Step 4 — Import existing resources safely
       - name: Import existing Kubernetes resources
-        shell: pwsh
         run: |
           Write-Host "Attempting to import Kubernetes resources..."
+
           try {
             terraform import kubernetes_manifest.mini_store_deploy default/mini-store
           } catch {
@@ -61,16 +62,16 @@ jobs:
       - name: Terraform Plan Destroy
         run: terraform plan -destroy -out=tfplan
 
-      # Step 6 — Apply destroy (no approval)
+      # Step 6 — Apply destroy (auto approve)
       - name: Terraform Destroy
         run: terraform apply -auto-approve tfplan
 
-      # Step 7 — Verify deletion (PowerShell-safe)
+      # Step 7 — Verify cleanup
       - name: Verify Kubernetes cleanup
-        shell: pwsh
         run: |
+          Write-Host "Checking remaining resources..."
           try {
             kubectl get all -n default
           } catch {
-            Write-Host "kubectl failed — cluster may already be empty."
+            Write-Host "No resources found or kubectl failed."
           }
