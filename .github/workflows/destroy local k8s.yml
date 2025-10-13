@@ -36,8 +36,3 @@ jobs:
 
       - name: Terraform Destroy Apply
         run: terraform apply -auto-approve tfplan
-
-      - name: Verify Cleanup
-        run: |
-          echo "Checking remaining Kubernetes resources..."
-          kubectl get all -A | findstr mini || echo "✅ All mini-store resources removed."
