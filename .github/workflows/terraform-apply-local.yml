@@ -54,8 +54,8 @@ jobs:
 
       - name: Terraform Apply
         run: |
-          cd terraform
-          terraform apply -auto-approve
+           cd terraform
+           "C:\ProgramData\chocolatey\bin\terraform.exe" apply -auto-approve
 
       # ------------------------------
       # Step 5: Verify Kubernetes resources
