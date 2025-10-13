@@ -15,9 +15,6 @@ jobs:
       KUBECONFIG: C:\Users\ealol\.kube\config
       TF_IN_AUTOMATION: true
 
-    defaults:
-      run:
-        working-directory: terraform
 
     steps:
       # Step 1 — Checkout repo
@@ -32,7 +29,9 @@ jobs:
 
       # Step 3 — Init Terraform
       - name: Terraform Init
-        run: terraform init -input=false
+        run:  |
+          cd terraform
+          terraform init
 
       # Step 4 — Import existing resources safely
       - name: Import existing Kubernetes resources
@@ -59,11 +58,15 @@ jobs:
 
       # Step 5 — Plan destroy
       - name: Terraform Plan Destroy
-        run: terraform plan -destroy -out=tfplan
+        run: |
+          cd terraform
+          terraform plan -destroy
 
       # Step 6 — Apply destroy (auto approve)
       - name: Terraform Destroy
-        run: terraform apply -auto-approve tfplan
+        run: |
+          cd terraform
+          terraform initterraform apply -auto-approve tfplan
 
       # Step 7 — Verify cleanup
       - name: Verify Kubernetes cleanup
