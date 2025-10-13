@@ -1,6 +1,5 @@
 name: Terraform Deploy to Local Kubernetes
 
-
 on:
   workflow_dispatch:
 
@@ -10,35 +9,32 @@ permissions:
 jobs:
   terraform:
     name: Apply Terraform locally
-    runs-on: self-hosted         
+    runs-on: self-hosted
+    env:
+      KUBECONFIG: C:\Users\ealol\.kube\config  
 
     defaults:
       run:
-        working-directory: terraform  # all Terraform files 
+        working-directory: terraform
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.5
 
-      
       - name: Terraform Init
         run: terraform init
 
-      
       - name: Terraform Validate
         run: terraform validate
 
-      
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
-      
       - name: Verify Kubernetes resources
         run: |
           kubectl get pods -A
