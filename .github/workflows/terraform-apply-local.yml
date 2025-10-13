@@ -46,7 +46,7 @@ jobs:
       - name: Terraform Apply
         run: |
            cd terraform
-           terraform apply
+           terraform apply -auto-approve
 
       # ------------------------------
       # Step 5: Verify Kubernetes resources
