@@ -1,6 +1,4 @@
-provider "kubernetes" {
-  config_path = var.kubeconfig_path
-}
+
 
 # Apply the YAML deployment
 resource "kubernetes_manifest" "mini_store_deploy" {
