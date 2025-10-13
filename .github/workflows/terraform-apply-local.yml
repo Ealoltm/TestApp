@@ -10,6 +10,9 @@ jobs:
   terraform:
     name: Apply Terraform locally
     runs-on: self-hosted
+    environment:
+      name: terraform-apply
+      url: https://github.com/${{ github.repository }}/actions
     env:
       # Ensure kubectl and Terraform both use your kubeconfig
       KUBECONFIG: C:\Users\ealol\.kube\config
@@ -42,6 +45,11 @@ jobs:
         run: |
           cd terraform
           terraform validate
+
+      - name: Terraform plan
+        run: |
+          cd terrafom
+          terrafom plan
 
       - name: Terraform Apply
         run: |
