@@ -11,32 +11,60 @@ jobs:
     name: Apply Terraform locally
     runs-on: self-hosted
     env:
-      KUBECONFIG: C:\Users\ealol\.kube\config  
-
-    defaults:
-      run:
-        working-directory: terraform
+      # Ensure kubectl and Terraform both use your kubeconfig
+      KUBECONFIG: C:\Users\ealol\.kube\config
 
     steps:
+      # ------------------------------
+      # Step 1: Checkout repository
+      # ------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ------------------------------
+      # Step 2: Debug - verify working directory and files
+      # ------------------------------
+      - name: Debug current directory
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "List of files:"
+          ls -R
+
+      # ------------------------------
+      # Step 3: Setup Terraform
+      # ------------------------------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.5
 
+      # ------------------------------
+      # Step 4: Terraform Init + Apply
+      # ------------------------------
       - name: Terraform Init
-        run: terraform init
+        run: |
+          cd terraform
+          terraform init
 
       - name: Terraform Validate
-        run: terraform validate
+        run: |
+          cd terraform
+          terraform validate
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: |
+          cd terraform
+          terraform apply -auto-approve
 
+      # ------------------------------
+      # Step 5: Verify Kubernetes resources
+      # ------------------------------
       - name: Verify Kubernetes resources
         run: |
+          echo "Pods:"
           kubectl get pods -A
+          echo "Services:"
           kubectl get svc -A
+          echo "Ingresses:"
           kubectl get ingress -A
