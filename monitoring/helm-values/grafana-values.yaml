@@ -1,6 +1,16 @@
 adminUser: admin
 adminPassword: admin
 
-
+# Make sure Helm doesn't reuse any existing secret
 admin:
   existingSecret: ""
+
+# Optional extras
+env:
+  GF_SECURITY_ADMIN_USER: admin
+  GF_SECURITY_ADMIN_PASSWORD: admin
+
+grafana.ini:
+  security:
+    admin_user: admin
+    admin_password: admin
