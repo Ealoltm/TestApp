@@ -39,7 +39,6 @@ jobs:
       # ------------------------------
 
       - name: Ensure terraform namespace exists
-      - name: Ensure terraform namespace exists
         shell: powershell
         run: |
           if (-not (kubectl get ns terraform -ErrorAction SilentlyContinue)) {
