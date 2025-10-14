@@ -1,4 +1,4 @@
-name: Terraform Deploy to Local Kubernetes
+name: Terraform apply to Local Kubernetes
 
 on:
   workflow_dispatch:
@@ -39,10 +39,9 @@ jobs:
       # ------------------------------
 
       - name: Ensure terraform namespace exists
-        shell: pwsh
-        run: |
-          kubectl get ns terraform -o name 2>$null
-          if (-not $?) { kubectl create ns terraform }
+          shell: bash
+          run: |
+            kubectl get ns terraform >/dev/null 2>&1 || kubectl create ns terraform
           
       # ------------------------------
       # Step 4: Terraform Init + Apply
