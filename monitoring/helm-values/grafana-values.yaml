@@ -1,16 +1,19 @@
+# Basic credentials (safe method)
 adminUser: admin
-adminPassword: admin
+adminPassword: admin123
 
-# Make sure Helm doesn't reuse any existing secret
+# Ensure Helm doesn’t try to use any existing secret
 admin:
   existingSecret: ""
 
-# Optional extras
+# Optional environment variables for clarity
 env:
   GF_SECURITY_ADMIN_USER: admin
-  GF_SECURITY_ADMIN_PASSWORD: admin
+  GF_SECURITY_ADMIN_PASSWORD: admin123
 
+# (Optional) Configure Grafana defaults
 grafana.ini:
-  security:
-    admin_user: admin
-    admin_password: admin
+  users:
+    default_theme: light
+  server:
+    root_url: http://grafana.local
