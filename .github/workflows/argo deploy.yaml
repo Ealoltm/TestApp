@@ -18,51 +18,57 @@ jobs:
         uses: actions/checkout@v4
 
       # ------------------------------
-      # Step 1: Ensure namespace exists
+      # Step 1: Ensure namespace
       # ------------------------------
-      - name: Ensure argocd namespace (YAML)
-        shell: bash
+      - name: Ensure argocd namespace
+        shell: powershell
         run: |
-          echo "Applying namespace manifest..."
+          Write-Host "Applying ArgoCD namespace..."
           kubectl apply -f monitoring/argocd/apps/namespace.yaml
 
       # ------------------------------
       # Step 2: Install ArgoCD core components
       # ------------------------------
       - name: Install ArgoCD core
-        shell: bash
+        shell: powershell
         run: |
-          echo "Installing ArgoCD..."
+          Write-Host "Installing ArgoCD..."
           kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-          echo "Waiting for ArgoCD server rollout..."
-          kubectl -n argocd rollout status deploy/argocd-server --timeout=240s || true
+          Write-Host "Waiting for ArgoCD server rollout..."
+          kubectl -n argocd rollout status deploy/argocd-server --timeout=240s
 
       # ------------------------------
-      # Step 3: Apply ingress and app definitions
+      # Step 3: Apply ingress and Application
       # ------------------------------
       - name: Configure ingress and register Application
-        shell: bash
+        shell: powershell
         run: |
-          echo "Applying ingress..."
+          Write-Host "Applying ingress..."
           kubectl apply -f monitoring/argocd/apps/ingress.yaml
-          echo "Applying testapp application..."
+          Write-Host "Applying app definition..."
           kubectl apply -f monitoring/argocd/apps/testapp.yaml
-          echo "Listing ArgoCD resources..."
-          kubectl -n argocd get pods
-          kubectl -n argocd get svc
-          kubectl -n argocd get ingress
+          Write-Host "Listing resources..."
+          kubectl get pods -n argocd
+          kubectl get svc -n argocd
+          kubectl get ingress -n argocd
 
       # ------------------------------
-      # Step 4: Print ArgoCD initial credentials
+      # Step 4: Print login credentials
       # ------------------------------
       - name: Show ArgoCD Login Credentials
-        shell: bash
+        shell: powershell
         run: |
-          echo "====================================================="
-          echo "ArgoCD is ready!"
-          echo "URL: http://argocd.local"
-          echo "Username: admin"
-          echo -n "Password: "
-          kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode
-          echo ""
-          echo "====================================================="
+          Write-Host "====================================================="
+          Write-Host "ArgoCD is ready!"
+          Write-Host "URL: http://argocd.local"
+          Write-Host "Username: admin"
+          Write-Host "Password:"
+          $b64 = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}'
+          if ($b64) {
+            $bytes = [System.Convert]::FromBase64String($b64)
+            $pwd = [System.Text.Encoding]::UTF8.GetString($bytes)
+            Write-Host $pwd
+          } else {
+            Write-Host "<password secret not yet created>"
+          }
+          Write-Host "====================================================="
