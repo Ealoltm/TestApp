@@ -72,8 +72,20 @@ jobs:
           helm upgrade --install loki grafana/loki-stack `
             -n monitoring -f monitoring/helm-values/loki-values.yaml
 
+          # --------------------------
+      # Step 8.1: Create Grafana admin secret
       # --------------------------
-      # Step 8: Deploy Grafana
+      - name: Create Grafana admin secret
+        run: |
+          kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+          kubectl delete secret grafana -n monitoring --ignore-not-found
+          kubectl create secret generic grafana `
+            --from-literal=admin-user=admin `
+            --from-literal=admin-password=admin123 `
+            -n monitoring
+
+      # --------------------------
+      # Step 8.2: Deploy Grafana
       # --------------------------
       - name: Deploy Grafana
         run: |
