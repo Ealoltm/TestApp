@@ -33,6 +33,17 @@ jobs:
           pwd
           echo "List of files:"
           ls -R
+
+      # ------------------------------
+      # Step 3: create NS
+      # ------------------------------
+
+      - name: Ensure terraform namespace exists
+        shell: pwsh
+        run: |
+          kubectl get ns terraform -o name 2>$null
+          if (-not $?) { kubectl create ns terraform }
+          
       # ------------------------------
       # Step 4: Terraform Init + Apply
       # ------------------------------
