@@ -1,0 +1,6 @@
+adminUser: admin
+adminPassword: admin
+
+
+admin:
+  existingSecret: ""
