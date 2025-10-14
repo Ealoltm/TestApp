@@ -24,7 +24,7 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Applying ArgoCD namespace..."
-          kubectl apply -f monitoring/argocd/apps/namespace.yaml
+          kubectl apply -f monitoring/argocd/namespace.yaml
 
       # ------------------------------
       # Step 2: Install ArgoCD core components
@@ -44,7 +44,7 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Applying ingress..."
-          kubectl apply -f monitoring/argocd/apps/ingress.yaml
+          kubectl apply -f monitoring/argocd/ingress.yaml
           Write-Host "Applying app definition..."
           kubectl apply -f monitoring/argocd/apps/testapp.yaml
           Write-Host "Listing resources..."
