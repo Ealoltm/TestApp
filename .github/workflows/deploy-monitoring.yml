@@ -83,6 +83,10 @@ jobs:
             --from-literal=admin-user=admin `
             --from-literal=admin-password=admin123 `
             -n monitoring
+            
+      - name: add configmap dashboards
+        run: |
+          kubectl apply -f monitoring/manifests/grafana-dashboards-configmap.yaml -n monitoring
 
       # --------------------------
       # Step 8.2: Deploy Grafana

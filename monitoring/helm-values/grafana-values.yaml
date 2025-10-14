@@ -33,3 +33,23 @@ datasources:
         access: proxy
         url: http://loki.monitoring.svc:3100
         editable: true
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        options:
+          path: /var/lib/grafana/dashboards
+
+extraConfigmapMounts:
+  - name: grafana-dashboards
+    mountPath: /var/lib/grafana/dashboards
+    configMap: grafana-dashboards
+    readOnly: true
+
