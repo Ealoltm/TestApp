@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   deploy:
-    name: deploy
+    name: Deploy ArgoCD to local cluster
     runs-on: self-hosted
     env:
       KUBECONFIG: C:\Users\ealol\.kube\config
@@ -17,49 +17,52 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Ensure namespace via YAML (idempotent, no 'already exists' errors)
+      # ------------------------------
+      # Step 1: Ensure namespace exists
+      # ------------------------------
       - name: Ensure argocd namespace (YAML)
-        shell: pwsh
+        shell: bash
         run: |
-          kubectl apply -f monitoring/argocd/namespace.yaml
+          echo "Applying namespace manifest..."
+          kubectl apply -f monitoring/argocd/apps/namespace.yaml
 
-      # Install Argo CD core (official upstream)
-      - name: Install Argo CD core
-        shell: pwsh
+      # ------------------------------
+      # Step 2: Install ArgoCD core components
+      # ------------------------------
+      - name: Install ArgoCD core
+        shell: bash
         run: |
+          echo "Installing ArgoCD..."
           kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-          kubectl -n argocd rollout status deploy/argocd-server --timeout=240s
+          echo "Waiting for ArgoCD server rollout..."
+          kubectl -n argocd rollout status deploy/argocd-server --timeout=240s || true
 
-      # Ingress and Application
+      # ------------------------------
+      # Step 3: Apply ingress and app definitions
+      # ------------------------------
       - name: Configure ingress and register Application
-        shell: pwsh
+        shell: bash
         run: |
-          kubectl apply -f monitoring/argocd/ingress.yaml
+          echo "Applying ingress..."
+          kubectl apply -f monitoring/argocd/apps/ingress.yaml
+          echo "Applying testapp application..."
           kubectl apply -f monitoring/argocd/apps/testapp.yaml
-          kubectl -n argocd get ingress
+          echo "Listing ArgoCD resources..."
           kubectl -n argocd get pods
+          kubectl -n argocd get svc
+          kubectl -n argocd get ingress
 
-      # Print the initial admin password detected by Argo CD
-      # (This is Windows/PowerShell-safe decoding)
+      # ------------------------------
+      # Step 4: Print ArgoCD initial credentials
+      # ------------------------------
       - name: Show ArgoCD Login Credentials
-        shell: pwsh
+        shell: bash
         run: |
-          $b64 = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' 2>$null
-          if (-not $b64) {
-            Write-Host "====================================================="
-            Write-Host "ArgoCD is ready!"
-            Write-Host "URL: http://argocd.local"
-            Write-Host "Username: admin"
-            Write-Host "Password: <not found> (secret missing - maybe previously customized?)"
-            Write-Host "You can always get it locally:"
-            Write-Host "kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode"
-            Write-Host "====================================================="
-            exit 0
-          }
-          $pwd = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($b64))
-          Write-Host "====================================================="
-          Write-Host "ArgoCD is ready!"
-          Write-Host "URL: http://argocd.local"
-          Write-Host "Username: admin"
-          Write-Host "Password: $pwd"
-          Write-Host "====================================================="
+          echo "====================================================="
+          echo "ArgoCD is ready!"
+          echo "URL: http://argocd.local"
+          echo "Username: admin"
+          echo -n "Password: "
+          kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode
+          echo ""
+          echo "====================================================="
