@@ -39,9 +39,12 @@ jobs:
       # ------------------------------
 
       - name: Ensure terraform namespace exists
-        shell: bash
+      - name: Ensure terraform namespace exists
+        shell: powershell
         run: |
-          kubectl get ns terraform >/dev/null 2>&1 || kubectl create ns terraform
+          if (-not (kubectl get ns terraform -ErrorAction SilentlyContinue)) {
+            kubectl create ns terraform
+          }
           
       # ------------------------------
       # Step 4: Terraform Init + Apply
