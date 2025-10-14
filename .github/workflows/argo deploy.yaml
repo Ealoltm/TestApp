@@ -1,0 +1,52 @@
+name: Deploy ArgoCD to Local Kubernetes
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      KUBECONFIG: C:\Users\ealol\.kube\config
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Debug workspace
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files:"
+          ls -R
+
+      # --- Install Argo CD ---
+      - name: Create namespace
+        shell: powershell
+        run: |
+          if (-not (kubectl get ns argocd -ErrorAction SilentlyContinue)) {
+            kubectl create ns argocd
+          }
+
+      - name: Apply Argo CD core manifests
+        run: |
+          kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+      - name: Configure Argo CD admin and ingress
+        run: |
+          kubectl apply -f monitoring/argocd/install/admin-secret.yaml
+          kubectl apply -f monitoring/argocd/install/ingress.yaml
+
+      - name: Register GitHub repo Application
+        run: |
+          kubectl apply -f monitoring/argocd/apps/testapp.yaml
+
+      - name: Verify Argo CD resources
+        run: |
+          echo "Pods in argocd:"
+          kubectl get pods -n argocd
+          echo "Ingress:"
+          kubectl get ingress -n argocd

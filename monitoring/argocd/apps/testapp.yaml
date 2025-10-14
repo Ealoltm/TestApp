@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: testapp
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Ealoltm/TestApp.git
+    targetRevision: main
+    path: monitoring/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
