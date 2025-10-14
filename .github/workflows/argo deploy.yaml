@@ -37,8 +37,8 @@ jobs:
 
       - name: Configure Argo CD admin and ingress
         run: |
-          kubectl apply -f monitoring/argocd/install/admin-secret.yaml
-          kubectl apply -f monitoring/argocd/install/ingress.yaml
+          kubectl apply -f monitoring/argocd/admin-secret.yaml
+          kubectl apply -f monitoring/argocd/ingress.yaml
 
       - name: Register GitHub repo Application
         run: |
