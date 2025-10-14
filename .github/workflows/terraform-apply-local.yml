@@ -41,8 +41,12 @@ jobs:
       - name: Ensure terraform namespace exists
         shell: powershell
         run: |
-          if (-not (kubectl get ns terraform -ErrorAction SilentlyContinue)) {
-            kubectl create ns terraform
+          try {
+            kubectl get ns terraform -ErrorAction Stop | Out-Null
+            Write-Host "Namespace 'terraform' already exists."
+          } catch {
+            Write-Host "Namespace not found. Creating..."
+            kubectl create ns terraform | Out-Null
           }
           
       # ------------------------------
