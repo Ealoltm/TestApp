@@ -17,14 +17,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Debug path and files
-        shell: pwsh
-        run: |
-          Write-Host "Current directory:"
-          pwd
-          Write-Host "Files:"
-          ls -R
-
       # Ensure namespace via YAML (idempotent, no 'already exists' errors)
       - name: Ensure argocd namespace (YAML)
         shell: pwsh
