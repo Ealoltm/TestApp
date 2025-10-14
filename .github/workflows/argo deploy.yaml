@@ -1,10 +1,7 @@
-name: Deploy ArgoCD to Local Kubernetes
+name: Deploy Argo CD
 
 on:
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   deploy:
@@ -16,37 +13,55 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug workspace
+      # --- Step 1: Apply Namespace + ArgoCD installation ---
+      - name: Install Argo CD
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Files:"
-          ls -R
-
-      # --- Install Argo CD ---
-      - name: Create namespace
-        shell: powershell
-        run: |
-          if (-not (kubectl get ns argocd -ErrorAction SilentlyContinue)) {
-            kubectl create ns argocd
-          }
-
-      - name: Apply Argo CD core manifests
-        run: |
+          kubectl apply -f monitoring/argocd/namespace.yaml
           kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
+      # --- Step 2: Wait for Argo CD core to be ready ---
+      - name: Wait for Argo CD components
+        run: |
+          echo "Waiting for Argo CD to become ready..."
+          kubectl wait --for=condition=available --timeout=180s deployment/argocd-server -n argocd
+          kubectl get pods -n argocd
+
+      # --- Step 3: Apply admin password + ingress ---
       - name: Configure Argo CD admin and ingress
         run: |
+          echo "Applying admin-secret and ingress configuration..."
           kubectl apply -f monitoring/argocd/admin-secret.yaml
           kubectl apply -f monitoring/argocd/ingress.yaml
 
+      # --- Step 4: Force ArgoCD server to reload secret ---
+      - name: Restart Argo CD server to load new admin password
+        run: |
+          echo "Restarting Argo CD server to reload admin credentials..."
+          kubectl delete pod -l app.kubernetes.io/name=argocd-server -n argocd
+          echo "Waiting for new pod..."
+          kubectl wait --for=condition=available --timeout=180s deployment/argocd-server -n argocd
+
+      # --- Step 5: Register GitHub repo as ArgoCD application ---
       - name: Register GitHub repo Application
         run: |
           kubectl apply -f monitoring/argocd/apps/testapp.yaml
 
+      # --- Step 6: Verify everything ---
       - name: Verify Argo CD resources
         run: |
-          echo "Pods in argocd:"
+          echo "=== Pods in argocd namespace ==="
           kubectl get pods -n argocd
-          echo "Ingress:"
+          echo "=== Services in argocd namespace ==="
+          kubectl get svc -n argocd
+          echo "=== Ingresses in argocd namespace ==="
           kubectl get ingress -n argocd
+
+      # --- Step 7: Print ArgoCD login info ---
+      - name: Show ArgoCD Login Credentials
+        run: |
+          echo "========================================="
+          echo " ArgoCD is ready!"
+          echo " URL: https://argocd.local"
+          echo " Username: admin"
+          echo " Password: admin123"
+          echo "========================================="
