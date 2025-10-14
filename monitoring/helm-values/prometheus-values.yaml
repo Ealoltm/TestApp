@@ -16,7 +16,21 @@ kubeEtcd:
 
 # Disable Node Exporter (not supported in Docker Desktop)
 nodeExporter:
-  enabled: false
+  enabled: true
+  hostNetwork: false
+
+  # Disable host filesystem mounts that break on Docker Desktop
+  hostRootFsMount:
+    enabled: false
+
+  # Use a safer security context for Docker Desktop
+  service:
+    port: 9100
+  tolerations: []
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534  # nobody
+
 
 # Optional: disable webhooks that sometimes fail locally
 prometheusOperator:
