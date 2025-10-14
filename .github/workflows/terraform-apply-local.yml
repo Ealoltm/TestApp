@@ -39,9 +39,9 @@ jobs:
       # ------------------------------
 
       - name: Ensure terraform namespace exists
-          shell: bash
-          run: |
-            kubectl get ns terraform >/dev/null 2>&1 || kubectl create ns terraform
+        shell: bash
+        run: |
+          kubectl get ns terraform >/dev/null 2>&1 || kubectl create ns terraform
           
       # ------------------------------
       # Step 4: Terraform Init + Apply
