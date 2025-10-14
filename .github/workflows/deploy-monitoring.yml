@@ -1,0 +1,88 @@
+name: Deploy Monitoring Stack to Local Kubernetes
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Helm Deploy Monitoring Stack
+    runs-on: self-hosted
+
+    env:
+      # Path to your local kubeconfig (same as your Terraform workflow)
+      KUBECONFIG: C:\Users\ealol\.kube\config
+
+    steps:
+      # --------------------------
+      # Step 1: Checkout repository
+      # --------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --------------------------
+      # Step 2: Verify context
+      # --------------------------
+      - name: Debug Kubernetes connection
+        run: |
+          kubectl config current-context
+          kubectl get nodes
+
+      # --------------------------
+      # Step 3: Add Helm repositories
+      # --------------------------
+      - name: Add Helm repos
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+
+      # --------------------------
+      # Step 4: Create namespaces
+      # --------------------------
+      - name: Create namespaces
+        run: |
+          kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
+
+      # --------------------------
+      # Step 5: Deploy ingress controller
+      # --------------------------
+      - name: Deploy Ingress Controller
+        run: |
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx `
+            -n ingress-nginx -f monitoring/helm-values/ingress-values.yaml
+
+      # --------------------------
+      # Step 6: Deploy Prometheus
+      # --------------------------
+      - name: Deploy Prometheus
+        run: |
+          helm upgrade --install prometheus prometheus-community/kube-prometheus-stack `
+            -n monitoring -f monitoring/helm-values/prometheus-values.yaml
+
+      # --------------------------
+      # Step 7: Deploy Loki + Promtail
+      # --------------------------
+      - name: Deploy Loki
+        run: |
+          helm upgrade --install loki grafana/loki-stack `
+            -n monitoring -f monitoring/helm-values/loki-values.yaml
+
+      # --------------------------
+      # Step 8: Deploy Grafana
+      # --------------------------
+      - name: Deploy Grafana
+        run: |
+          helm upgrade --install grafana grafana/grafana `
+            -n monitoring -f monitoring/helm-values/grafana-values.yaml
+
+      # --------------------------
+      # Step 9: Apply ServiceMonitor and Ingress manifests
+      # --------------------------
+      - name: Apply manifests
+        run: |
+          kubectl apply -f monitoring/manifests/

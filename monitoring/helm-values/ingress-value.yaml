@@ -1,0 +1,14 @@
+controller:
+  replicaCount: 1
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: monitoring
+      additionalLabels:
+        release: prometheus
+  admissionWebhooks:
+    enabled: false

@@ -1,0 +1,31 @@
+# Disable built-in Grafana (we’ll run our own)
+grafana:
+  enabled: false
+
+# Disable Kubernetes control-plane components that fail on Docker Desktop
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+coreDns:
+  enabled: false
+kubeEtcd:
+  enabled: false
+
+# Disable Node Exporter (not supported in Docker Desktop)
+nodeExporter:
+  enabled: false
+
+# Optional: disable webhooks that sometimes fail locally
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false
+
+# Prometheus core configuration
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    scrapeInterval: 15s
