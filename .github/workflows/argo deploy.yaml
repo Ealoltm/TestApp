@@ -38,13 +38,11 @@ jobs:
           kubectl -n argocd rollout status deploy/argocd-server --timeout=240s
 
       # ------------------------------
-      # Step 3: Apply ingress and Application
+      # Step 3: Apply  Application
       # ------------------------------
-      - name: Configure ingress and register Application
+      - name: C register Application
         shell: powershell
         run: |
-          Write-Host "Applying ingress..."
-          kubectl apply -f monitoring/argocd/ingress.yaml
           Write-Host "Applying app definition..."
           kubectl apply -f monitoring/argocd/apps/testapp.yaml
           Write-Host "Listing resources..."
